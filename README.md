@@ -3,10 +3,10 @@ This repository contains codes to reproduce the results in the paper "A Kernel M
 See https://arxiv.org/abs/2210.00634 for more details on the experiments and data sets.
 
 Most codes can be run on a local laptop (MacBook Pro with 2.4 GHz Intel Core i5, 16GB memory).
-For some of the codes below, we use saved intermediate results (whose computations may take several days on a server) to expedite the reproduction procedure. One can also uncomment the related codes in the `.R` file to reproduce all the intermediate results.
+For some of the codes below, we use saved intermediate results (whose computations may take several days on a server) to expedite the reproduction procedure. One can also uncomment the corresponding codes in the `.R` file to reproduce all the intermediate results.
 
 
-## The Power Curves
+## The Power curves
 
 `Power_curves.R` reproduces the power curves (Figure 2 in the main text) of different methods.
 
@@ -68,3 +68,22 @@ The R package needed: `KMD`.
 `growth.R` reproduces the results concerning the Berkeley Growth Study.
 
 The R packages needed: `KMD`, `fda`.
+
+
+
+
+
+## Data dictionary
+`ArabicDigits.rda`: The data set is from the R package `mfds` (http://ls.home.amu.edu.pl/mfds.pdf).
+
+`Amazon.csv`: https://archive.ics.uci.edu/ml/datasets/Amazon+Commerce+reviews+set
+
+`semeion.txt`: https://archive.ics.uci.edu/ml/datasets/semeion+handwritten+digit
+
+`isolet1+2+3+4.txt`, `isolet5.txt`: https://archive.ics.uci.edu/ml/datasets/isolet
+
+`lrs.txt`: https://archive.ics.uci.edu/ml/datasets/Low+Resolution+Spectrometer
+
+For other data sets that are called from an R package, please see the corresponding help pages for the data set information.
+
+
