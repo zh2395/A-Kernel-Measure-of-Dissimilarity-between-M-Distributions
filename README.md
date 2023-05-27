@@ -6,7 +6,7 @@ Most codes can be run on a local laptop (MacBook Pro with 2.4 GHz Intel Core i5,
 For some of the codes below, we use saved intermediate results (whose computations may take several days on a server) to expedite the reproduction procedure. One can also uncomment the corresponding codes in the `.R` file to reproduce all the intermediate results.
 
 
-## The Power curves
+## The power curves
 
 `Power_curves.R` reproduces the power curves (Figure 2 in the main text) of different methods.
 
