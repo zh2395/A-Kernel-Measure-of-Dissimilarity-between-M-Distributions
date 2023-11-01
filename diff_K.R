@@ -1,7 +1,21 @@
+# The script generates the power plot (Figure 5) with different k in Appendix D.3.
+
+# k: number of nearest neighbors
+# Consider total number of observations n = 150 or 300, and different dimension d
+# Consider three cases: location differences, scale differences, and a t-distribution example
+# (Only for the scale problem, consider another kernel K2)
+
+# Number of replications to compute the empirical power
 rep = 1000
 num_cores = 24
+# Different k to be considered
 ks = c(1,5,10,15,20,30,40,50,75,100,125,150,175,200)
+# Dimension
 dims = 2^(1:6)
+
+
+# Computation: a few hours on server (24 cores in parallel)
+# We use saved results; one may un-comment the codes below to reproduce them
 
 load("/Users/huangzhen/Downloads/power_n150_location.Rdata")
 load("/Users/huangzhen/Downloads/power_n150_location5.Rdata")
@@ -350,7 +364,9 @@ load("/Users/huangzhen/Downloads/power_n300_t5.Rdata")
 #  }
 # }
 
+# Generate different sub-plots of the figure
 library(ggplot2)
+# A color blind friendly palette
 cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
           "#0072B2", "#F0E442", "#D55E00", "#CC79A7")
 scale_n150_M3 = data.frame(k = rep(c(1,5,10,15,20,30,40,50,75,100,125),6),
@@ -483,6 +499,7 @@ p_t_n300_M5 = ggplot(t_n300_M5, aes(x = k, y = Power)) +
   geom_point(aes(color = delta,shape=delta)) + 
   ylim(c(0,1))
 
+# Combine all sub-plots
 ggpubr::ggarrange(p_location_n150_M3, p_location_n150_M5, p_location_n300_M3, p_location_n300_M5,
                   p_scale_n150_M3, p_scale_n150_M5, p_scale_n300_M3, p_scale_n300_M5,
                   p_t_n150_M3, p_t_n150_M5, p_t_n300_M3, p_t_n300_M5,
