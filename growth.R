@@ -1,11 +1,16 @@
+# Berkeley growth data
+# The script reproduces the results concerning the Berkeley Growth Study.
+
 library(fda)
 attach(growth)
-# order 6 spline basis with knots at ages of observations
-# number of basis functions 35
-# monotonic smoothing model: y = beta_0 + beta_1 \int exp(w) + epsilon
+# Order 6 spline basis with knots at ages of observations
+# Number of basis functions: 35
+# Monotonic smoothing model: y = beta_0 + beta_1 \int exp(w) + epsilon
 wbasis = create.bspline.basis(c(1,18), 35, 6, age)
-# roughness penalty on the third derivatives; smoothing parameter 1/sqrt(10) 
+# Roughness penalty on the third derivatives; smoothing parameter 1/sqrt(10) 
 growfdPar = fdPar(wbasis, 3, 10^(-0.5))
+
+# Obtain the smoothed functions
 growth_female = list()
 for (i in 1:54) {
   growth_female[[i]] = smooth.monotone(age, hgtf[,i], growfdPar)
@@ -15,10 +20,13 @@ for (i in 1:39) {
   growth_male[[i]] = smooth.monotone(age, hgtm[,i], growfdPar)
 }
 growth_all = c(growth_female, growth_male)
+
+# Compute the distance matrix
 Dist_mat = matrix(0, nrow = 93, ncol = 93)
 for (i in 1:93) {
   for (j in 1:i) {
     if (j < i) {
+      # The function to be integrated (squared difference)
       sq_diff = function(x) {
         func_val1 = growth_all[[i]]$beta[1] + growth_all[[i]]$beta[2]*eval.monfd(x,growth_all[[i]]$Wfd)
         func_val2 = growth_all[[j]]$beta[1] + growth_all[[j]]$beta[2]*eval.monfd(x,growth_all[[j]]$Wfd)
@@ -30,11 +38,14 @@ for (i in 1:93) {
   }
 }
 set.seed(1)
+# Compute the KMD
 KMD::KMD(Dist_mat,c(rep(1,54),rep(2,39)),M=2,Knn=1)
 # 0.8471035
+# Compute the p-value for equal distributions
 KMD::KMD_test(Dist_mat,c(rep(1,54),rep(2,39)),M=2,Knn=1)
 # 0.001996008
 
+# Only use heights between ages 5 to 12
 Dist_mat2 = matrix(0, nrow = 93, ncol = 93)
 for (i in 1:93) {
   for (j in 1:i) {
@@ -50,38 +61,9 @@ for (i in 1:93) {
   }
 }
 set.seed(1)
+# Compute the KMD
 KMD::KMD(Dist_mat2,c(rep(1,54),rep(2,39)),M=2,Knn=1)
 # 0.3665717
+# Compute the p-value for equal distributions
 KMD::KMD_test(Dist_mat2,c(rep(1,54),rep(2,39)),M=2,Knn=1)
 # 0.005988024
-
-# This tests the difference between boys and girls heights in the
-# Berkeley growth data.
-# First set up a basis system to hold the smooths
-knots  <- growth$age
-norder <- 6
-nbasis <- length(knots) + norder - 2
-hgtbasis <- create.bspline.basis(range(knots), nbasis, norder, knots)
-# Now smooth with a fourth-derivative penalty and a very small smoothing
-# parameter
-Lfdobj <- 4
-lambda <- 1e-2
-growfdPar <- fdPar(hgtbasis, Lfdobj, lambda)
-hgtmfd <- smooth.basis(growth$age, growth$hgtm, growfdPar)$fd
-hgtffd <- smooth.basis(growth$age, growth$hgtf, growfdPar)$fd
-# Call tperm.fd
-tres <- tperm.fd(hgtmfd,hgtffd)
-
-indices = (growth$age >= 5) & (growth$age <= 12)
-knots  <- growth$age[indices]
-norder <- 6
-nbasis <- length(knots) + norder - 2
-hgtbasis <- create.bspline.basis(range(knots), nbasis, norder, knots)
-Lfdobj <- 4
-lambda <- 1e-2
-growfdPar <- fdPar(hgtbasis, Lfdobj, lambda)
-hgtmfd <- smooth.basis(growth$age[indices], growth$hgtm[indices,], growfdPar)$fd
-hgtffd <- smooth.basis(growth$age[indices], growth$hgtf[indices,], growfdPar)$fd
-tres <- tperm.fd(hgtmfd,hgtffd)
-
-
