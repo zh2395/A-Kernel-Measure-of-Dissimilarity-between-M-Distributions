@@ -1,9 +1,11 @@
-# Power curves
-# Packages needed: KMD, gridExtra
+# The script reproduces the power curves (Figure 2 in the main text) of different methods
+
 library(nbpMatching)
 library(energy)
 library(ggplot2)
+# Number of replications to obtain the empirical power
 replic = 1000
+# Number of cores used in parallel
 num_cores = 7
 
 # Creates the null covariance matrix for mmcm, corresponding to the scenario when all K distributions are the same
@@ -150,8 +152,10 @@ CMPermTest = function(data_list,B) {
 }
 
 
-# normal location
+# Normal location problem
 dims = 2^(1:9)
+# Generate 100 observations from each distribution and return the p-value
+# Method: KMD with 30-NN graph
 getPval = function(id) {
   Pvals = rep(NA,length(dims))
   for (i in 1:length(dims)) {
@@ -166,7 +170,7 @@ getPval = function(id) {
 }
 PermPval30NN = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = length(dims),byrow = TRUE)
 
-
+# Methods: MCM and MMCM
 getPval = function(id) {
   Pvals = rep(NA,length(dims)*2)
   for (i in 1:length(dims)) {
@@ -183,6 +187,7 @@ getPval = function(id) {
 }
 PermPvalCM = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = length(dims)*2,byrow = TRUE)
 
+# Method: DISCO
 getPval = function(id) {
   Pvals = rep(NA,length(dims))
   for (i in 1:length(dims)) {
@@ -197,6 +202,7 @@ getPval = function(id) {
 }
 PermPvaldisco = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = length(dims),byrow = TRUE)
 
+# Method: MANOVA (Pillai)
 getPval = function(id) {
   Pvals = rep(NA,length(dims))
   for (i in 1:8) {
@@ -211,6 +217,7 @@ getPval = function(id) {
 }
 ParaPvalPillai = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = length(dims),byrow = TRUE)
 
+# Method: MANOVA (Roy)
 getPval = function(id) {
   Pvals = rep(NA,length(dims))
   for (i in 1:8) {
@@ -225,21 +232,23 @@ getPval = function(id) {
 }
 ParaPvalRoy = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = length(dims),byrow = TRUE)
 
+# Data frame for ggplot
 df1 = data.frame(Dimension = rep(dims,6),
                  Method = c(rep("KMD",length(dims)),rep("Pillai",length(dims)),rep("Roy",length(dims)),rep("MCM",length(dims)),rep("MMCM",length(dims)),rep("DISCO",length(dims))),
                  Power = c(apply(PermPval30NN<=0.05,2,mean),apply(ParaPvalPillai<=0.05,2,mean),apply(ParaPvalRoy<=0.05,2,mean),apply(PermPvalCM[,1:length(dims)]<=0.05,2,mean),apply(PermPvalCM[,(length(dims)+1):(2*length(dims))]<=0.05,2,mean),apply(PermPvaldisco<=0.05,2,mean)))
+# A color blind friendly palette
 cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
           "#0072B2", "#F0E442", "#D55E00", "#CC79A7")
-
+# Generate the plot
 p1 = ggplot(df1, aes(x=Dimension, y=Power, group=Method,colour=Method)) +
   geom_point() + geom_line() + scale_colour_manual(values=cbp1[-3]) +
   scale_x_continuous(trans='log2',n.breaks = length(dims)) + geom_vline(xintercept = 300, linetype="dashed", colour = "grey") +
   theme(legend.position="bottom") + guides(color=guide_legend(nrow=2,byrow=TRUE))+ ggtitle("Normal location")
 
 
-
-# normal scale problem
+# Normal scale problem
 dims = round(exp(seq(log(2), log(2^6), length.out = 11)))
+# Method: KMD with 30-NN graph
 getPval = function(id) {
   Pvals = rep(NA,length(dims))
   for (i in 1:length(dims)) {
@@ -254,6 +263,7 @@ getPval = function(id) {
 }
 PermPval30NNS = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = length(dims),byrow = TRUE)
 
+# Method: KMD with 30-NN graph and another choice of kernel
 getPval = function(id) {
   Pvals = rep(NA,length(dims))
   for (i in 1:length(dims)) {
@@ -268,6 +278,7 @@ getPval = function(id) {
 }
 PermPval30NNSK2 = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = length(dims),byrow = TRUE)
 
+# Method: MMCM and MCM
 getPval = function(id) {
   Pvals = rep(NA,length(dims)*2)
   for (i in 1:length(dims)) {
@@ -284,6 +295,7 @@ getPval = function(id) {
 }
 PermPvalCMS = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = length(dims)*2,byrow = TRUE)
 
+# Method: DISCO
 getPval = function(id) {
   Pvals = rep(NA,length(dims))
   for (i in 1:length(dims)) {
@@ -298,6 +310,7 @@ getPval = function(id) {
 }
 PermPvaldiscoS = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = length(dims),byrow = TRUE)
 
+# Method: MANOVA (Roy)
 getPval = function(id) {
   Pvals = rep(NA,length(dims))
   for (i in 1:length(dims)) {
@@ -326,6 +339,7 @@ p2 = ggplot(df2, aes(x=Dimension, y=Power, group=Method,colour=Method)) +
 # t-distribution
 delta = (0:7)/10
 d = 16
+# Method: KMD with 30-NN graph
 getPval = function(id) {
   Pvals = rep(NA,length(delta))
   for (i in 1:length(delta)) {
@@ -339,6 +353,7 @@ getPval = function(id) {
 }
 PermPval30NNt = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = length(delta),byrow = TRUE)
 
+# Method: MMCM and MCM
 getPval = function(id) {
   Pvals = rep(NA,2*length(delta))
   for (i in 1:length(delta)) {
@@ -354,6 +369,7 @@ getPval = function(id) {
 }
 PermPvalCMt = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = 2*length(delta),byrow = TRUE)
 
+# Method: DISCO
 getPval = function(id) {
   Pvals = rep(NA,length(delta))
   for (i in 1:length(delta)) {
@@ -367,6 +383,7 @@ getPval = function(id) {
 }
 PermPvaldiscot = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = length(delta),byrow = TRUE)
 
+# Method: MANOVA (Pillai)
 getPval = function(id) {
   Pvals = rep(NA,length(delta))
   for (i in 1:length(delta)) {
@@ -380,6 +397,7 @@ getPval = function(id) {
 }
 PermPvalPillait = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = length(delta),byrow = TRUE)
 
+# Method: MANOVA (Roy)
 getPval = function(id) {
   Pvals = rep(NA,length(delta))
   for (i in 1:length(delta)) {
@@ -403,8 +421,10 @@ p3 = ggplot(df3, aes(x=noncentrality_parameter, y=Power, group=Method,colour=Met
   theme(legend.position="bottom") +guides(color=guide_legend(nrow=2,byrow=TRUE))+ 
   ggtitle("t distribution location")
 
+
 # U-shaped
 delta = 1+0.05*(0:8)
+# Function to generate the U-shaped distribution
 U_shaped_generator = function(n) {
   sample_identity = base::sample(1:3,size = n, replace = TRUE, prob = c(0.5,0.25,0.25))
   X = matrix(NA, nrow = n, ncol = 2)
@@ -419,7 +439,7 @@ U_shaped_generator = function(n) {
   }
   return(X)
 }
-
+# Method: KMD with 30-NN graph
 getPval = function(id) {
   Pvals = rep(NA,length(delta))
   for (i in 1:length(delta)) {
@@ -434,6 +454,7 @@ getPval = function(id) {
 }
 PermPval30NNU = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = length(delta),byrow = TRUE)
 
+# Method: MMCM and MCM
 getPval = function(id) {
   Pvals = rep(NA,2*length(delta))
   for (i in 1:length(delta)) {
@@ -450,6 +471,7 @@ getPval = function(id) {
 }
 PermPvalCMU = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = 2*length(delta),byrow = TRUE)
 
+# Method: DISCO
 getPval = function(id) {
   Pvals = rep(NA,length(delta))
   for (i in 1:length(delta)) {
@@ -464,6 +486,7 @@ getPval = function(id) {
 }
 PermPvaldiscoU = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = length(delta),byrow = TRUE)
 
+# Method: MANOVA (Pillai)
 getPval = function(id) {
   Pvals = rep(NA,length(delta))
   for (i in 1:length(delta)) {
@@ -478,6 +501,7 @@ getPval = function(id) {
 }
 PermPvalPillaiU = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = length(delta),byrow = TRUE)
 
+# Method: MANOVA (Roy)
 getPval = function(id) {
   Pvals = rep(NA,length(delta))
   for (i in 1:length(delta)) {
@@ -499,8 +523,10 @@ p4 = ggplot(df4, aes(x=scaling_parameter, y=Power, group=Method,colour=Method)) 
   geom_point() + geom_line() + scale_colour_manual(values=cbp1[-3]) +
   theme(legend.position="none") + ggtitle("U shaped scale")
 
+
 # S_shaped
 delta = 0.01*(0:10)*pi
+# Function to generate the S-shaped distribution
 S_shaped_generator = function(n) {
   sample_identity = base::sample(1:3,size = n, replace = TRUE, prob = c(1/3,1/3,1/3))
   X = matrix(NA, nrow = n, ncol = 2)
@@ -515,6 +541,7 @@ S_shaped_generator = function(n) {
   }
   return(X)
 }
+# Method: KMD with 30-NN graph
 getPval = function(id) {
   Pvals = rep(NA,length(delta))
   for (i in 1:length(delta)) {
@@ -529,6 +556,7 @@ getPval = function(id) {
 }
 PermPval30NNS_shaped = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = length(delta),byrow = TRUE)
 
+# Method: MMCM and MCM
 getPval = function(id) {
   Pvals = rep(NA,2*length(delta))
   for (i in 1:length(delta)) {
@@ -545,6 +573,7 @@ getPval = function(id) {
 }
 PermPvalCMS_shaped = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = 2*length(delta),byrow = TRUE)
 
+# Method: DISCO
 getPval = function(id) {
   Pvals = rep(NA,length(delta))
   for (i in 1:length(delta)) {
@@ -559,6 +588,7 @@ getPval = function(id) {
 }
 PermPvaldiscoS_shaped = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = length(delta),byrow = TRUE)
 
+# Method: MANOVA (Pillai)
 getPval = function(id) {
   Pvals = rep(NA,length(delta))
   for (i in 1:length(delta)) {
@@ -573,6 +603,7 @@ getPval = function(id) {
 }
 PermPvalPillaiS_shaped = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = length(delta),byrow = TRUE)
 
+# Method: MANOVA (Roy)
 getPval = function(id) {
   Pvals = rep(NA,length(delta))
   for (i in 1:length(delta)) {
@@ -597,14 +628,15 @@ p5 = ggplot(df5, aes(x=rotation_angle, y=Power, group=Method,colour=Method)) +
   ggtitle("S shaped rotation")
 
 
-# spherical uniform
+# Spherical uniform
 delta = 0.05*(0:7)
+# Function to generate the spherical uniform distribution
 unif_sphere_generator = function(n,a,b) {
   X = matrix(rnorm(n*3), nrow = n, ncol = 3, byrow = TRUE)
   X = X/matrix(sqrt(apply(X^2, 1, sum))/rbeta(n,a,b), nrow = n, ncol = 3, byrow = FALSE)
   return(X)
 }
-
+# Method: KMD with 30-NN graph
 getPval = function(id) {
   Pvals = rep(NA,length(delta))
   for (i in 1:length(delta)) {
@@ -618,6 +650,7 @@ getPval = function(id) {
 }
 PermPval30NNunif_sphere = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = length(delta),byrow = TRUE)
 
+# Method: MMCM and MCM
 getPval = function(id) {
   Pvals = rep(NA,2*length(delta))
   for (i in 1:length(delta)) {
@@ -633,6 +666,7 @@ getPval = function(id) {
 }
 PermPvalCMunif_sphere = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = 2*length(delta),byrow = TRUE)
 
+# Method: DISCO
 getPval = function(id) {
   Pvals = rep(NA,length(delta))
   for (i in 1:length(delta)) {
@@ -646,6 +680,7 @@ getPval = function(id) {
 }
 PermPvaldiscounif_sphere = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = length(delta),byrow = TRUE)
 
+# Method: MANOVA (Pillai)
 getPval = function(id) {
   Pvals = rep(NA,length(delta))
   for (i in 1:length(delta)) {
@@ -659,6 +694,7 @@ getPval = function(id) {
 }
 PermPvalPillaiunif_sphere = matrix(unlist(parallel::mclapply(seq(1,replic), getPval, mc.cores = num_cores)),ncol = length(delta),byrow = TRUE)
 
+# Method: MANOVA (Roy)
 getPval = function(id) {
   Pvals = rep(NA,length(delta))
   for (i in 1:length(delta)) {
@@ -680,7 +716,5 @@ p6 = ggplot(df6, aes(x=alpha, y=Power, group=Method,colour=Method)) +
   geom_point() + geom_line() + scale_colour_manual(values=cbp1[-3])  +
   theme(legend.position="none") +
   ggtitle("Spherical symmetric")
-
+# Combine previous plots
 gridExtra::grid.arrange(p1,p2,p3,p4,p5,p6, ncol=3,heights=c(1.27,1))
-
-
