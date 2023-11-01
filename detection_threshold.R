@@ -1,18 +1,29 @@
 # Detection threshold
+# The script provides the empirical validation for the detection threshold theorem,
+# and reproduces Figure 4 in Appendix D.2.
 library(KMD)
 library(ggplot2)
 library(plyr)
 require('latex2exp')
+# Dimension of the distributions
 d = 20
+# Number of observations from the first and second distributions
 N1 = 20000
 N2 = 10000
+# Total number of observations
 N = N1 + N2
 h = 2
+# The Gaussian scale parameter is 3 + h/N^b, for different b in [0,1]
 bs = (100:0)/100
+# Number of replications to compute the empirical power
 rep = 200
+# Number of cores used in parallel
 num_cores = 24
-# The following computation takes nearly 4 days to run on a server with 24 cores in parallel
+
+# A matrix to record the power: 3 choices of k, 101 choices of b
 Powerd20_2_1 = matrix(0,3,101)
+# The following computation takes nearly 4 days to run on a server with 24 cores in parallel
+
 
 #for (i in 1:101) {
 #  b = bs[i]
@@ -30,6 +41,7 @@ Powerd20_2_1 = matrix(0,3,101)
 
 # We use the saved computation result instead
 load("~/Downloads/Powerd20_2_1.RData")
+# Data frame used for the plot (dimension = 20, pi_1:pi_2 = 2:1)
 d_20_pi_2_1 = data.frame(b = rep(-bs,3),
                          Method = c(rep("1NN",101),rep("2NN",101),rep("3NN",101)),
                          Power = c(Powerd20_2_1[1,],Powerd20_2_1[2,],Powerd20_2_1[3,]),
@@ -37,6 +49,8 @@ d_20_pi_2_1 = data.frame(b = rep(-bs,3),
                          class = "C")
 
 
+# The same computation as above except that the values of N1 and N2 switch
+# (dimension = 20, pi_1:pi_2 = 1:2)
 # The following computation takes nearly 4 days to run on a server with 24 cores in parallel
 Powerd20_1_2 = matrix(0,3,101)
 N1 = 10000
@@ -63,9 +77,11 @@ d_20_pi_1_2 = data.frame(b = rep(-bs,3),
                          threshold = - 2/20,
                          class = "F")
 
+# Dimension = 10, pi_1:pi_2 = 2:1
 d = 10
 N1 = 20000
 N2 = 10000
+# A matrix to record the power: 3 choices of k, 101 choices of b
 Powerd101 = matrix(0,3,101)
 # The following code takes approximately 7.5 hours on a server (24 cores in parallel)
 
@@ -86,6 +102,8 @@ Powerd101 = matrix(0,3,101)
 # We use the saved computation result instead
 load("~/Downloads/Powerd101.RData")
 
+# The same computation as above except that the values of N1 and N2 switch
+# (dimension = 10, pi_1:pi_2 = 1:2)
 N1 = 10000
 N2 = 20000
 Powerd102 = matrix(0,3,101)
@@ -119,7 +137,7 @@ d_10_pi_1_2 = data.frame(b = rep(-bs,3),
                          threshold = - 2/10,
                          class = "E")
 
-
+# Dimension = 5, pi_1:pi_2 = 2:1
 d = 5
 N1 = 20000
 N2 = 10000
@@ -143,6 +161,7 @@ Powerd51 = matrix(0,3,101)
 # We use the saved computation result instead
 load("~/Downloads/Powerd51.RData")
 
+# Dimension = 5, pi_1:pi_2 = 1:2
 N1 = 10000
 N2 = 20000
 Powerd52 = matrix(0,3,101)
@@ -176,6 +195,8 @@ d_5_pi_1_2 = data.frame(b = rep(-bs,3),
                         threshold = -1/4,
                         class = "D")
 
+# Generate the power plot
+# The appender adds labels to the sub-plots
 appender <- function(string) {
   print(string)
   c(TeX("$d=5, \\pi_1 = 2/3,\\pi_2 = 1/3$"),
