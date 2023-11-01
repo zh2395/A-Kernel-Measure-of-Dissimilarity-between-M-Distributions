@@ -1,3 +1,5 @@
+# The script reproduces the results in Table 1 concerning data sets from the UCI Machine Learning Repository
+
 # Amazon commerce reviews
 Amazon = read.csv("/Users/huangzhen/desktop/Twosamples/rcode/Amazon.csv", header = TRUE)
 Reviewer4 = Amazon[(3*30 + 1):(4*30),2:10001]
@@ -20,8 +22,6 @@ set.seed(1)
 KMD::KMD(X = rbind(Reviewer4,Reviewer8), Y = c(rep(1,15),rep(2,15),rep(3,30)), M = 3, Knn = 1)
 KMD::KMD_test(X = rbind(Reviewer4,Reviewer8), Y = c(rep(1,15),rep(2,15),rep(3,30)), M = 3, Knn = 1)
 # 0.4231111 0.001996008
-
-
 
 
 
@@ -77,8 +77,18 @@ KMD::KMD_test(X = rbind(letter7,letter20), Y = c(rep(1,150),rep(2,150),rep(3,300
 
 # lrs
 lrs = read.delim("/Users/huangzhen/desktop/Twosamples/rcode/lrs.txt", header = FALSE, sep=c(" ","\n"))
+# Read the file as a 7-column data frame
+# Every data point takes 15 lines, beginning with an NA, ended with 5 NAs
+
+# Find the beginning line of each data point
 row_index = (1:(dim(lrs)[1]))[is.na(lrs$V1)]
+
+# The matrix to store the data
+# The last column records the response (LRS-class: integer from 0 - 99,
+# with the 10's digit giving the basic class and the 1's digit giving the subclass)
 lrs_matrix = matrix(NA, nrow = 531, ncol = 93 + 1)
+
+# Extract data and response
 for (i in 1:length(row_index)) {
   if (i == length(row_index)) {
     row_i = c(t(lrs[(row_index[i]):(dim(lrs)[1]),]))
@@ -95,7 +105,6 @@ class1 = lrs[(9 < lrs[,94]) & (lrs[,94] < 20),1:93]
 class2 = lrs[(19 < lrs[,94]) & (lrs[,94] < 30),1:93]
 class4 = lrs[(39 < lrs[,94]) & (lrs[,94] < 50),1:93]
 dim(class1)
-
 
 
 set.seed(1)
@@ -121,5 +130,3 @@ set.seed(1)
 KMD::KMD(X = rbind(class2,class1[-c(28,71),]), Y = c(rep(1,96),rep(2,177),rep(3,88)), M = 3, Knn = 1)
 KMD::KMD_test(X = rbind(class2,class1[-c(28,71),]), Y = c(rep(1,96),rep(2,177),rep(3,88)), M = 3, Knn = 1)
 # 0.5084845 0.001996008
-
-
