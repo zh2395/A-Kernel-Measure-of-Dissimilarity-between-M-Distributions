@@ -1,4 +1,7 @@
-# return an n by Knn matrix showing the indices of KNN
+# Produce Figure 8 in Appendix D.4 that shows the converges of \tilde{g}_3
+
+# Function that returns an n by Knn matrix showing the indices of KNN
+# (Ties broken at random)
 get_neighbors = function(X,Knn) {
   if (!is.matrix(X)) X = as.matrix(X)
   # compute the nearest neighbor of X
@@ -88,6 +91,7 @@ set.seed(1)
 X = rnorm(2000)
 Y = sample(3,2000,replace = TRUE)
 a = c()
+# Compute \tilde{g}_3 with the first i data points
 for (i in 10:2000) {
   a = c(a,g_3_tilde(X[1:i],Y[1:i],3,1))
 }
@@ -108,6 +112,8 @@ for (i in n) {
   print(i^(1/5))
 }
 
+# This function computes the probability of mutual nearest neighbor
+# for a homogeneous Poisson process on R^j (Henze, N. 1986)
 mutual_prob = function(j) {
   if (j %% 2 == 0) {
     j = j/2
