@@ -1,7 +1,11 @@
+# Analyze the movie reviews in the simulation section
+
 library(stringr)
 library(text2vec)
+# Load data
 data("movie_review")
 
+# Prepare function
 prep_fun = function(x) {
   # make text lower case
   x = str_to_lower(x)
@@ -15,15 +19,20 @@ movie_review$review_clean = prep_fun(movie_review$review)
 set.seed(1)
 it = itoken(movie_review$review_clean, progressbar = FALSE)
 v = create_vocabulary(it)
+# Prune the vocabulary
 v = prune_vocabulary(v, doc_proportion_max = 0.1, term_count_min = 5)
 vectorizer = vocab_vectorizer(v)
 
+# Create document-term matrix
 dtm = create_dtm(it, vectorizer)
 
+# (Jaccard) distance matrix
 jac_dist = dist2(x = dtm, y = NULL, method = "jaccard", norm = "none")
+# Compute KMD
 KMD::KMD(jac_dist, movie_review$sentiment + 1, M = 2, Knn = 1)
 # 0.4440855
 
+# Create 10 folds for cross-validation
 folds <- splitTools::create_folds(as.factor(movie_review$sentiment), k = 10)
 err = c()
 for (i in 1:10) {
@@ -31,6 +40,6 @@ for (i in 1:10) {
   err = c(err, mean(predict(model, dtm[-folds[[i]],]) != movie_review$sentiment[-folds[[i]]]))
   print(err[i])
 }
-# cross-validated accuracy
+# Cross-validated accuracy
 print(1-mean(err))
 # 0.8191872
