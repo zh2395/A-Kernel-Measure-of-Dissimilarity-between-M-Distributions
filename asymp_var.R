@@ -1,6 +1,12 @@
+# The script reproduces the histograms of normalized empirical KMD in Appendix D.4 (Figure 9).
+
+# The number of replications used to plot the histogram
 B = 100000
+# The number of cores used in parallel
 num_cores = 7
 
+# This function computes the probability of mutual nearest neighbor
+# for a homogeneous Poisson process on R^j (Henze, N. 1986)
 mutual_prob = function(j) {
   if (j %% 2 == 0) {
     j = j/2
@@ -25,6 +31,8 @@ mutual_prob = function(j) {
   }
 }
 
+# Asymptotic distribution-free standard deviation
+# For dimensions 1, 5, 10
 sig = rep(NA,3)
 for (i in 1:3) {
   a = 1/3; b = 1/9; c = 1/9; d = c(1,5,10)[i]
@@ -32,10 +40,12 @@ for (i in 1:3) {
   sig[i] = (a*(g1+g3)+b*(g2-2*g1-2*g3-1)+c*(g1-g2+g3+1))/((1-1/3)^2)
 }
 
-
+# Each distribution has n_i observations
 ni = 150
 n = 3*ni
 d = 1
+# Repeatedly generate 3 distributions from the null and compute KMD
+# Normalize KMD using asymptotic distribution-free standard deviation
 Null_KMD = function(id){
   set.seed(id)
   X = matrix(rnorm(n*d), nrow = n, ncol = d)
@@ -43,6 +53,8 @@ Null_KMD = function(id){
   return(KMD::KMD(X, Y, M = 3, Knn = 1, Kernel = "discrete")*sqrt(n)/sig[1])
 }
 Thm4_d1 = unlist(parallel::mclapply(seq(1,B), Null_KMD, mc.cores = num_cores))
+# Repeatedly generate 3 distributions from the null and compute KMD
+# Normalize KMD using permutation standard deviation
 Null_KMD = function(id){
   set.seed(id)
   X = matrix(rnorm(n*d), nrow = n, ncol = d)
@@ -51,6 +63,7 @@ Null_KMD = function(id){
 }
 Thm3_d1 = unlist(parallel::mclapply(seq(1,B), Null_KMD, mc.cores = num_cores))
 
+# Do the same for dimension 5
 d = 5
 Null_KMD = function(id){
   set.seed(id)
@@ -67,6 +80,7 @@ Null_KMD = function(id){
 }
 Thm3_d5 = unlist(parallel::mclapply(seq(1,B), Null_KMD, mc.cores = num_cores))
 
+# Do the same for dimension 10
 d = 10
 Null_KMD = function(id){
   set.seed(id)
@@ -83,6 +97,7 @@ Null_KMD = function(id){
 }
 Thm3_d10 = unlist(parallel::mclapply(seq(1,B), Null_KMD, mc.cores = num_cores))
 
+# Plot the results
 par(mfrow = c(2, 3))
 hist(Thm3_d1, breaks = c(-Inf,seq(-5,5,length=40),Inf), freq = FALSE,
      xlim = c(-4,4), ylim = c(0,0.5), main = "d = 1",
